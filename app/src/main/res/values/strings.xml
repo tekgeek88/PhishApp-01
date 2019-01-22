@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">PhishApp</string>
+
+    <string name="text_password">Password</string>
+    <string name="text_email">Email</string>
+    <string name="text_register">REGISTER</string>
+    <string name="text_sign_in">SIGN IN</string>
+    <string name="text_phish_app">Phish App</string>
+    <string name="text_password_retype">Retype Password</string>
+    <string name="key_login_success">Login Success</string>
+    <string name="key_register_success">Register Success</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+</resources>
