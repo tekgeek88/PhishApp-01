@@ -29,7 +29,7 @@ public class SuccessFragment extends Fragment {
     public void onStart() {
         super.onStart();
         if (getArguments() != null) {
-            Credentials credentials = (Credentials) getArguments().getSerializable(getString(R.string.key_login_success));
+            Credentials credentials = (Credentials) getArguments().getSerializable(getString(R.string.key_credentials_object));
             updateContent(credentials);
         }
     }
@@ -39,8 +39,11 @@ public class SuccessFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        View v = inflater.inflate(R.layout.fragment_success, container, false);
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_success, container, false);
+        return v;
     }
 
     @Override

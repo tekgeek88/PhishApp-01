@@ -8,8 +8,6 @@
     tools:context=".LoginFragment"
     tools:layout_editor_absoluteY="81dp">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <TextView
         android:id="@+id/login_textview_phishapp"
         android:layout_width="wrap_content"
@@ -33,7 +31,8 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:ems="10"
-        android:hint="Password"
+        android:hint="@string/text_password"
+        android:text="123456"
         android:inputType="textPassword"
         app:layout_constraintBottom_toTopOf="@+id/login_button_register"
         app:layout_constraintEnd_toEndOf="parent"
@@ -69,6 +68,7 @@
         android:layout_marginBottom="16dp"
         android:ems="10"
         android:hint="@string/text_email"
+        android:text="tekgeek88@yahoo.com"
         android:inputType="textEmailAddress"
         app:layout_constraintBottom_toTopOf="@+id/login_textview_password"
         app:layout_constraintEnd_toEndOf="parent"

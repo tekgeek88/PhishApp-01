@@ -60,7 +60,7 @@ public class LoginFragment extends Fragment {
         super.onStart();
         if (getArguments() != null) {
             Credentials credentials = (Credentials) getArguments()
-                    .getSerializable(getString(R.string.key_register_success));
+                    .getSerializable(getString(R.string.key_credentials_object));
             updateContent(credentials);
         }
     }

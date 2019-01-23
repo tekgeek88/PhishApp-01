@@ -1,5 +1,6 @@
 package carga.tcss450.uw.edu.phishapp;
 
+import android.content.Intent;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -8,7 +9,6 @@ import android.os.Bundle;
 import carga.tcss450.uw.edu.phishapp.model.Credentials;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.OnLoginFragmentInteractionListener, RegisterFragment.OnRegisterFragmentInteractionListener, SuccessFragment.OnSuccessFragmentInteractionListener {
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,16 +28,11 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
     @Override
     public void onLoginSuccess(Credentials credentials, String jwt) {
 
-        SuccessFragment successFragment = new SuccessFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(getString(R.string.key_login_success), credentials);
-        successFragment.setArguments(args);
-        FragmentTransaction transaction = getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.frame_main_container, successFragment);
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.putExtra(getString(R.string.key_credentials_object), credentials);
+        startActivity(intent);
 
-        // Commit the transaction
-        transaction.commit();
+
     }
 
 
@@ -57,14 +52,14 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
     @Override
     public void onRegisterSuccess(Credentials credentials) {
 
+        FragmentManager fm = getSupportFragmentManager();
+        fm.popBackStack();
+
         LoginFragment loginFragment = new LoginFragment();
 
         Bundle args = new Bundle();
-        args.putSerializable(getString(R.string.key_register_success), credentials);
+        args.putSerializable(getString(R.string.key_credentials_object), credentials);
         loginFragment.setArguments(args);
-
-        FragmentManager fm = getSupportFragmentManager();
-        fm.popBackStack();
 
         FragmentTransaction transaction = getSupportFragmentManager()
                 .beginTransaction()
