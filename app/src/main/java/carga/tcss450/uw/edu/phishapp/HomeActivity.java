@@ -1,5 +1,6 @@
 package carga.tcss450.uw.edu.phishapp;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -14,11 +15,28 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import carga.tcss450.uw.edu.phishapp.blog.BlogPost;
 import carga.tcss450.uw.edu.phishapp.model.Credentials;
+import carga.tcss450.uw.edu.phishapp.setlist.SetList;
+import carga.tcss450.uw.edu.phishapp.utils.GetAsyncTask;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, SuccessFragment.OnSuccessFragmentInteractionListener, BlogFragment.OnBlogListFragmentInteractionListener, BlogPostFragment.OnBlogPostFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        SuccessFragment.OnSuccessFragmentInteractionListener,
+        BlogFragment.OnBlogListFragmentInteractionListener,
+        BlogPostFragment.OnBlogPostFragmentInteractionListener,
+        WaitFragment.OnFragmentInteractionListener,
+        SetListFragment.OnSetListFragmentInteractionListener,
+        SetListItemFragment.OnSetListItemFragmentInteractionListener {
+
+    private String mJwToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,18 +95,48 @@ public class HomeActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            Credentials credentials = (Credentials) getIntent().getExtras().getSerializable(getString(R.string.key_credentials_object));
+            Credentials credentials = (Credentials) getIntent().getExtras().getSerializable(getString(R.string.keys_intent_credentials));
             SuccessFragment successFragment = new SuccessFragment();
             Bundle args = new Bundle();
-            args.putSerializable(getString(R.string.key_credentials_object), credentials);
+            args.putSerializable(getString(R.string.keys_intent_credentials), credentials);
             successFragment.setArguments(args);
             loadFragment(successFragment);
         } else if (id == R.id.nav_blog_posts) {
-            loadFragment(new BlogFragment());
+//            loadFragment(new BlogFragment());
+            Uri uri = new Uri.Builder()
+                    .scheme("https")
+                    .appendPath(getString(R.string.ep_base_url))
+                    .appendPath(getString(R.string.ep_phish))
+                    .appendPath(getString(R.string.ep_blog))
+                    .appendPath(getString(R.string.ep_get))
+                    .build();
+            GetAsyncTask b = new GetAsyncTask.Builder(uri.toString())
+                    .onPreExecute(this::onWaitFragmentInteractionShow)
+                    .onPostExecute(this::handleBlogGetOnPostExecute)
+                    .addHeaderField("authorization", mJwToken) //add the JWT as a header
+                    .build();
+            b.execute();
+        } else if (id == R.id.nav_set_lists) {
+//            loadFragment(new SetListFragment());
+            Uri uri = new Uri.Builder()
+                    .scheme("https")
+                    .appendPath(getString(R.string.ep_base_url))
+                    .appendPath(getString(R.string.ep_phish))
+                    .appendPath(getString(R.string.ep_setlists))
+                    .appendPath(getString(R.string.ep_recent))
+                    .build();
+            GetAsyncTask b = new GetAsyncTask.Builder(uri.toString())
+                    .onPreExecute(this::onWaitFragmentInteractionShow)
+                    .onPostExecute(this::handleSetListGetOnPostExecute)
+                    .addHeaderField("authorization", mJwToken) //add the JWT as a header
+                    .build();
+            b.execute();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+
+
         return true;
     }
 
@@ -100,31 +148,26 @@ public class HomeActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        Credentials credentials = (Credentials) getIntent().getExtras().getSerializable(getString(R.string.key_credentials_object));
-
-        SuccessFragment successFragment = new SuccessFragment();
-
-        Bundle args = new Bundle();
-        args.putSerializable(getString(R.string.key_credentials_object), credentials);
-        successFragment.setArguments(args);
-
-            if (findViewById(R.id.fragmentContainer) != null) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragmentContainer, successFragment)
-                        .commit();
-            }
+        loadSuccess();
     }
 
-    private void loadFragment(Fragment frag) {
+    private void loadSuccess() {
+        Credentials credentials = (Credentials)getIntent()
+                .getExtras().getSerializable(getString(R.string.keys_intent_credentials));
+
+        mJwToken = getIntent().getStringExtra(getString(R.string.keys_intent_jwt));
+
+        SuccessFragment successFragment = new SuccessFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(getString(R.string.keys_intent_credentials), credentials);
+        successFragment.setArguments(args);
         FragmentTransaction transaction = getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.fragmentContainer, frag)
-                .addToBackStack(null);
-        // Commit the transaction
+                .replace(R.id.fragmentContainer, successFragment);
+
         transaction.commit();
     }
 
-    // The blog fucking fragment
     @Override
     public void onBlogListFragmentInteraction(BlogPost item) {
 
@@ -139,13 +182,183 @@ public class HomeActivity extends AppCompatActivity
                     .replace(R.id.fragmentContainer, blogPostFragment)
                     .addToBackStack(null)
                     .commit();
-
         }
-
     }
 
     @Override
     public void onBlogPostFragmentInteraction(View view) {
+
+    }
+
+    @Override
+    public void onWaitFragmentInteractionShow() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.fragmentContainer, new WaitFragment(), "WAIT")
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void onWaitFragmentInteractionHide() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .remove(getSupportFragmentManager().findFragmentByTag("WAIT"))
+                .commit();
+    }
+
+
+    private void handleBlogGetOnPostExecute(final String result) {
+        //parse JSON
+
+        try {
+            JSONObject root = new JSONObject(result);
+            if (root.has(getString(R.string.keys_json_blogs_response))) {
+                JSONObject response = root.getJSONObject(
+                        getString(R.string.keys_json_blogs_response));
+                if (response.has(getString(R.string.keys_json_blogs_data))) {
+                    JSONArray data = response.getJSONArray(
+                            getString(R.string.keys_json_blogs_data));
+
+                    List<BlogPost> blogs = new ArrayList<>();
+
+                    for(int i = 0; i < data.length(); i++) {
+                        JSONObject jsonBlog = data.getJSONObject(i);
+
+                        blogs.add(new BlogPost.Builder(
+                                jsonBlog.getString(
+                                        getString(R.string.keys_json_blogs_pubdate)),
+                                jsonBlog.getString(
+                                        getString(R.string.keys_json_blogs_title)))
+                                .addTeaser(jsonBlog.getString(
+                                        getString(R.string.keys_json_blogs_teaser)))
+                                .addUrl(jsonBlog.getString(
+                                        getString(R.string.keys_json_blogs_url)))
+                                .build());
+                    }
+
+                    BlogPost[] blogsAsArray = new BlogPost[blogs.size()];
+                    blogsAsArray = blogs.toArray(blogsAsArray);
+
+
+                    Bundle args = new Bundle();
+                    args.putSerializable(BlogFragment.ARG_BLOG_LIST, blogsAsArray);
+                    Fragment frag = new BlogFragment();
+                    frag.setArguments(args);
+
+                    onWaitFragmentInteractionHide();
+                    loadFragment(frag);
+                } else {
+                    Log.e("ERROR!", "No data array");
+                    //notify user
+                    onWaitFragmentInteractionHide();
+                }
+            } else {
+                Log.e("ERROR!", "No response");
+                //notify user
+                onWaitFragmentInteractionHide();
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("ERROR!", e.getMessage());
+            //notify user
+            onWaitFragmentInteractionHide();
+        }
+    }
+
+    private void handleSetListGetOnPostExecute(final String result) {
+        //parse JSON
+
+        try {
+            JSONObject root = new JSONObject(result);
+            if (root.has(getString(R.string.keys_json_setlist_response))) {
+                JSONObject response = root.getJSONObject(
+                        getString(R.string.keys_json_setlist_response));
+                if (response.has(getString(R.string.keys_json_setlist_date))) {
+                    JSONArray data = response.getJSONArray(
+                            getString(R.string.keys_json_setlist_date));
+
+                    List<SetList> setLists = new ArrayList<>();
+
+                    for(int i = 0; i < data.length(); i++) {
+                        JSONObject jsonSetList = data.getJSONObject(i);
+
+                        setLists.add(new SetList.Builder(
+                                jsonSetList.getString(
+                                        getString(R.string.keys_json_setlist_longdate)),
+                                jsonSetList.getString(
+                                        getString(R.string.keys_json_setlist_location)))
+                                .addVenue(jsonSetList.getString(
+                                        getString(R.string.keys_json_setlist_venue)))
+                                .addSetListData(jsonSetList.getString(
+                                        getString(R.string.keys_json_setlist_setlist_data)))
+                                .addSetListNotes(jsonSetList.getString(
+                                        getString(R.string.keys_json_setlist_setlist_notes)))
+                                .addUrl(jsonSetList.getString(
+                                        getString(R.string.keys_json_setlist_url)))
+                                .build());
+                    }
+
+                    SetList[] setListAsArray = new SetList[setLists.size()];
+                    setListAsArray = setLists.toArray(setListAsArray);
+
+
+                    Bundle args = new Bundle();
+                    args.putSerializable(SetListFragment.ARG_SETLIST, setListAsArray);
+                    Fragment frag = new SetListFragment();
+                    frag.setArguments(args);
+
+                    onWaitFragmentInteractionHide();
+                    loadFragment(frag);
+                } else {
+                    Log.e("ERROR!", "No data array");
+                    //notify user
+                    onWaitFragmentInteractionHide();
+                }
+            } else {
+                Log.e("ERROR!", "No response");
+                //notify user
+                onWaitFragmentInteractionHide();
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("ERROR!", e.getMessage());
+            //notify user
+            onWaitFragmentInteractionHide();
+        }
+    }
+
+
+    private void loadFragment(Fragment frag) {
+        FragmentTransaction transaction = getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, frag)
+                .addToBackStack(null);
+        // Commit the transaction
+        transaction.commit();
+    }
+
+    @Override
+    public void onSetListFragmentInteraction(SetList item) {
+        SetListItemFragment setListItemFragment = new SetListItemFragment();
+
+        Bundle args = new Bundle();
+        args.putSerializable(getString(R.string.key_setlist_object), item);
+        setListItemFragment.setArguments(args);
+
+        if (findViewById(R.id.fragmentContainer) != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, setListItemFragment)
+                    .addToBackStack(null)
+                    .commit();
+
+        }
+    }
+
+    @Override
+    public void onSetListButtonFragmentInteraction(View view) {
 
     }
 }

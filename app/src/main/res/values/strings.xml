@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">PhishApp</string>
+    <string name="key_default_username">tekgeek88@yahoo.com</string>
+    <string name="key_default_password">123456</string>
 
+
+
+    <string name="text_username">User Name</string>
+    <string name="text_firstname">First Name</string>
+    <string name="text_lastname">Last Name</string>
     <string name="text_password">Password</string>
     <string name="text_email">Email</string>
     <string name="text_register">REGISTER</string>
@@ -21,6 +28,13 @@
     <string name="text_blog_publish_date">Publish Date</string>
     <string name="text_blog_teaser">Blog Sample</string>
     <string name="key_blog_post_object">Blog Post Object</string>
-    <string name="btn_fragment_blog_post_full_text">FULL TEXT</string>
+    <string name="text_fulltext">FULL TEXT</string>
+    <string name="text_set_lists">Set Lists</string>
+    <string name="text_long_date">Long date</string>
+    <string name="text_location">Location</string>
+    <string name="text_setlist_data">Set list data</string>
+    <string name="text_setlist_notes">Setlist Notes</string>
+    <string name="text_setlist_venue">Venue</string>
+    <string name="key_setlist_object">SetList object</string>
 
 </resources>

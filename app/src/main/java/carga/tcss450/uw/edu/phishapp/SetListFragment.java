@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,71 +15,62 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import carga.tcss450.uw.edu.phishapp.blog.BlogGenerator;
-import carga.tcss450.uw.edu.phishapp.blog.BlogPost;
+import carga.tcss450.uw.edu.phishapp.setlist.SetList;
+
 
 /**
  * A fragment representing a list of Items.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnBlogListFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link OnSetListFragmentInteractionListener}
  * interface.
  */
-public class BlogFragment extends Fragment {
+public class SetListFragment extends Fragment {
 
     private static final String ARG_COLUMN_COUNT = "column-count";
 
     private int mColumnCount = 1;
-    private OnBlogListFragmentInteractionListener mListener;
+    private OnSetListFragmentInteractionListener mListener;
 
-    public static final String ARG_BLOG_LIST = "blogs lists";
-    private List<BlogPost> mBlogs;
-
+    public static final String ARG_SETLIST = "setlists";
+    private List<SetList> mSetLists;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public BlogFragment() {
+    public SetListFragment() {
     }
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static BlogFragment newInstance(int columnCount) {
-        BlogFragment fragment = new BlogFragment();
+    public static SetListFragment newInstance(int columnCount) {
+        SetListFragment fragment = new SetListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
         return fragment;
     }
 
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//
-//        if (getArguments() != null) {
-//            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-//        }
-//    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            mBlogs = new ArrayList<BlogPost>(
-                    Arrays.asList((BlogPost[]) getArguments().getSerializable(ARG_BLOG_LIST)));
+            mSetLists = new ArrayList<SetList>(
+                    Arrays.asList((SetList[]) getArguments().getSerializable(ARG_SETLIST)));
         } else {
-            mBlogs = Arrays.asList(BlogGenerator.BLOGS);
+//            mSetLists = Arrays.asList(BlogGenerator.SETLISTS);
+            Log.wtf("WTF", "Maybe you should implement the SetList Generator");
         }
     }
-
 
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_blog_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_setlist_list, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -89,9 +81,8 @@ public class BlogFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-//            recyclerView.setAdapter(new MyBlogRecyclerViewAdapter(Arrays.asList(BlogGenerator.SETLISTS), mListener));
-            // Added to use the web service
-            recyclerView.setAdapter(new MyBlogRecyclerViewAdapter(mBlogs, mListener));
+//            recyclerView.setAdapter(new MySetListRecyclerViewAdapter(DummyContent.SETLISTS, mListener));
+            recyclerView.setAdapter(new MySetListRecyclerViewAdapter(mSetLists, mListener));
         }
         return view;
     }
@@ -100,11 +91,11 @@ public class BlogFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnBlogListFragmentInteractionListener) {
-            mListener = (OnBlogListFragmentInteractionListener) context;
+        if (context instanceof OnSetListFragmentInteractionListener) {
+            mListener = (OnSetListFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnBlogListFragmentInteractionListener");
+                    + " must implement OnSetListFragmentInteractionListener");
         }
     }
 
@@ -124,7 +115,7 @@ public class BlogFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnBlogListFragmentInteractionListener {
-        void onBlogListFragmentInteraction(BlogPost item);
+    public interface OnSetListFragmentInteractionListener {
+        void onSetListFragmentInteraction(SetList item);
     }
 }

@@ -55,7 +55,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        android:text="@string/btn_fragment_blog_post_full_text"
+        android:text="@string/text_fulltext"
         android:textColor="@color/colorAccent"
         android:textSize="14sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/textView_fragment_blog_post_post_date"

@@ -29,7 +29,7 @@ public class SuccessFragment extends Fragment {
     public void onStart() {
         super.onStart();
         if (getArguments() != null) {
-            Credentials credentials = (Credentials) getArguments().getSerializable(getString(R.string.key_credentials_object));
+            Credentials credentials = (Credentials) getArguments().getSerializable(getString(R.string.keys_intent_credentials));
             updateContent(credentials);
         }
     }

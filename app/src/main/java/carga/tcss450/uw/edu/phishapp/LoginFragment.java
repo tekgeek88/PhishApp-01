@@ -1,16 +1,22 @@
 package carga.tcss450.uw.edu.phishapp;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import carga.tcss450.uw.edu.phishapp.model.Credentials;
+import carga.tcss450.uw.edu.phishapp.utils.SendPostAsyncTask;
 
 
 /**
@@ -22,6 +28,7 @@ import carga.tcss450.uw.edu.phishapp.model.Credentials;
 public class LoginFragment extends Fragment {
 
     private OnLoginFragmentInteractionListener mListener;
+    private Credentials mCredentials;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -39,7 +46,7 @@ public class LoginFragment extends Fragment {
         b.setOnClickListener(this::register);
 
         b = (Button) v.findViewById(R.id.login_button_signin);
-        b.setOnClickListener(this::signin);
+        b.setOnClickListener(this::attemptLogin);
 
         return v;
     }
@@ -77,33 +84,104 @@ public class LoginFragment extends Fragment {
         }
     }
 
-    public void signin(View view) {
-        if (mListener != null) {
-            boolean isValidated = true;
-            TextView textview_email = getActivity().findViewById(R.id.login_textview_email);
-            TextView textview_password = getActivity().findViewById(R.id.login_textview_password);
-            String username = textview_email.getText().toString();
+//    public void signin(View view) {
+//        if (mListener != null) {
+//            boolean isValidated = true;
+//            TextView textview_email = getActivity().findViewById(R.longDate.login_textview_email);
+//            TextView textview_password = getActivity().findViewById(R.longDate.login_textview_password);
+//            String username = textview_email.getText().toString();
+//
+//            // Any empty EditText fields
+//            if(TextUtils.isEmpty(textview_email.getText())) {
+//                textview_email.setError("Field cannot be empty");
+//                isValidated = false;
+//            } else if (!textview_email.getText().toString().contains("@")) {
+//                textview_email.setError("Invalid email address");
+//                isValidated = false;
+//            }
+//
+//            if(TextUtils.isEmpty(textview_password.getText())) {
+//                textview_password.setError("Field cannot be empty");
+//                isValidated = false;
+//            }
+//
+//            // Do not navigate to SuccessFragment unless login inputs are in the correct format.
+//            if (isValidated) {
+//                Credentials.Builder credBuilder = new Credentials.Builder(username, textview_password.getText().toString());
+//                mListener.onLoginSuccess(credBuilder.build(), "");
+//
+//
+//                Credentials credentials = new Credentials.Builder(
+//                        textview_email.getText().toString(),
+//                        textview_password.getText().toString())
+//                        .build();
+//
+//                //build the web service URL
+//                Uri uri = new Uri.Builder()
+//                        .scheme("https")
+//                        .appendPath(getString(R.string.ep_base_url))
+//                        .appendPath(getString(R.string.ep_login))
+//                        .build();
+//
+//                //build the JSONObject
+//                JSONObject msg = credentials.asJSONObject();
+//
+//                mCredentials = credentials;
+//
+//                //instantiate and execute the AsyncTask.
+//                new SendPostAsyncTask.Builder(uri.toString(), msg)
+//                        .onPreExecute(this::handleLoginOnPre)
+//                        .onPostExecute(this::handleLoginOnPost)
+//                        .onCancelled(this::handleErrorsInTask)
+//                        .build().execute();
+//            }
+//
+//        }
+//
+//    }
 
-            // Any empty EditText fields
-            if(TextUtils.isEmpty(textview_email.getText())) {
-                textview_email.setError("Field cannot be empty");
-                isValidated = false;
-            } else if (!textview_email.getText().toString().contains("@")) {
-                textview_email.setError("Invalid email address");
-                isValidated = false;
-            }
+    private void attemptLogin(final View theButton) {
 
-            if(TextUtils.isEmpty(textview_password.getText())) {
-                textview_password.setError("Field cannot be empty");
-                isValidated = false;
-            }
+        EditText emailEdit = getActivity().findViewById(R.id.login_textview_email);
+        EditText passwordEdit = getActivity().findViewById(R.id.login_textview_password);
 
-            // Do not navigate to SuccessFragment unless login inputs are in the correct format.
-            if (isValidated) {
-                Credentials.Builder credBuilder = new Credentials.Builder(username, textview_password.getText().toString());
-                mListener.onLoginSuccess(credBuilder.build(), "");
-            }
+        boolean hasError = false;
+        if (emailEdit.getText().length() == 0) {
+            hasError = true;
+            emailEdit.setError("Field must not be empty.");
+        }  else if (emailEdit.getText().toString().chars().filter(ch -> ch == '@').count() != 1) {
+            hasError = true;
+            emailEdit.setError("Field must contain a valid email address.");
+        }
+        if (passwordEdit.getText().length() == 0) {
+            hasError = true;
+            passwordEdit.setError("Field must not be empty.");
+        }
 
+        if (!hasError) {
+            Credentials credentials = new Credentials.Builder(
+                    emailEdit.getText().toString(),
+                    passwordEdit.getText().toString())
+                    .build();
+
+            //build the web service URL
+            Uri uri = new Uri.Builder()
+                    .scheme("https")
+                    .appendPath(getString(R.string.ep_base_url))
+                    .appendPath(getString(R.string.ep_login))
+                    .build();
+
+            //build the JSONObject
+            JSONObject msg = credentials.asJSONObject();
+
+            mCredentials = credentials;
+
+            //instantiate and execute the AsyncTask.
+            new SendPostAsyncTask.Builder(uri.toString(), msg)
+                    .onPreExecute(this::handleLoginOnPre)
+                    .onPostExecute(this::handleLoginOnPost)
+                    .onCancelled(this::handleErrorsInTask)
+                    .build().execute();
         }
     }
 
@@ -116,6 +194,63 @@ public class LoginFragment extends Fragment {
         textView_password.setText(credentials.getPassword());
     }
 
+
+    /**
+     * Handle errors that may occur during the AsyncTask.
+     * @param result the error message provide from the AsyncTask
+     */
+    private void handleErrorsInTask(String result) {
+        Log.e("ASYNC_TASK_ERROR",  result);
+    }
+
+    /**
+     * Handle the setup of the UI before the HTTP call to the webservice.
+     */
+    private void handleLoginOnPre() {
+        mListener.onWaitFragmentInteractionShow();
+    }
+
+    /**
+     * Handle onPostExecute of the AsynceTask. The result from our webservice is
+     * a JSON formatted String. Parse it for success or failure.
+     * @param result the JSON formatted String response from the web service
+     */
+    private void handleLoginOnPost(String result) {
+        try {
+            JSONObject resultsJSON = new JSONObject(result);
+            boolean success =
+                    resultsJSON.getBoolean(
+                            getString(R.string.keys_json_login_success));
+
+            if (success) {
+                //Login was successful. Switch to the loadSuccessFragment.
+                mListener.onLoginSuccess(mCredentials,
+                        resultsJSON.getString(
+                                getString(R.string.keys_json_login_jwt)));
+                return;
+            } else {
+                //Login was unsuccessful. Don’t switch fragments and
+                // inform the user
+                ((TextView) getView().findViewById(R.id.login_textview_email))
+                        .setError("Login Unsuccessful");
+            }
+            mListener.onWaitFragmentInteractionHide();
+        } catch (JSONException e) {
+            //It appears that the web service did not return a JSON formatted
+            //String or it did not have what we expected in it.
+            Log.e("JSON_PARSE_ERROR",  result
+                    + System.lineSeparator()
+                    + e.getMessage());
+
+            mListener.onWaitFragmentInteractionHide();
+            ((TextView) getView().findViewById(R.id.login_textview_email))
+                    .setError("Login Unsuccessful");
+        }
+    }
+
+
+
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -126,7 +261,7 @@ public class LoginFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnLoginFragmentInteractionListener {
+    public interface OnLoginFragmentInteractionListener extends WaitFragment.OnFragmentInteractionListener {
 
         void onLoginSuccess(Credentials credentials, String jwt);
 
