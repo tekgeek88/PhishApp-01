@@ -45,7 +45,7 @@ public class RegisterFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_register, container, false);
         // Inflate the layout for this fragment
 
-        Button b = (Button) v.findViewById(R.id.register_button_register);
+        Button b = (Button) v.findViewById(R.id.btn_fragment_register_register);
         b.setOnClickListener(this::register);
 
         return v;
@@ -72,12 +72,12 @@ public class RegisterFragment extends Fragment {
     public void register(View view) {
         if (mListener != null) {
             boolean isValidated = true;
-            TextView textview_username = getActivity().findViewById(R.id.register_textview_username);
-            TextView textview_firstName = getActivity().findViewById(R.id.register_textview_firstname);
-            TextView textview_lastName = getActivity().findViewById(R.id.register_textview_lastame);
-            TextView textview_email = getActivity().findViewById(R.id.register_textview_email);
-            TextView textview_password = getActivity().findViewById(R.id.register_textview_password);
-            TextView textview_password_confirm = getActivity().findViewById(R.id.register_textview_password_confirm);
+            TextView textview_username = getActivity().findViewById(R.id.editText_fragment_register_username);
+            TextView textview_firstName = getActivity().findViewById(R.id.editText_fragment_register_firstname);
+            TextView textview_lastName = getActivity().findViewById(R.id.editText_fragment_register_lastname);
+            TextView textview_email = getActivity().findViewById(R.id.editText_fragment_register_email);
+            TextView textview_password = getActivity().findViewById(R.id.editText_fragment_register_password);
+            TextView textview_password_confirm = getActivity().findViewById(R.id.editText_fragment_register_password_confirm);
 
 
             if (TextUtils.isEmpty(textview_username.getText())) {
@@ -195,7 +195,7 @@ public class RegisterFragment extends Fragment {
             } else {
                 //Registration was unsuccessful. Don’t switch fragments and
                 // inform the user
-                ((TextView) getView().findViewById(R.id.register_textview_email))
+                ((TextView) getView().findViewById(R.id.editText_fragment_register_email))
                         .setError("Registration Unsuccessful");
             }
             mListener.onWaitFragmentInteractionHide();
