@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">PhishApp</string>
-    <string name="key_default_username">tekgeek88@yahoo.com</string>
-    <string name="key_default_password">123456</string>
-
+    <string name="key_default_username">""</string>
+    <string name="key_default_password">""</string>
+    <string name="action_logout">Logout</string>
 
 
     <string name="text_username">User Name</string>

@@ -1,5 +1,7 @@
 package carga.tcss450.uw.edu.phishapp;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -81,7 +83,8 @@ public class HomeActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            logout();
             return true;
         }
 
@@ -329,6 +332,29 @@ public class HomeActivity extends AppCompatActivity
             onWaitFragmentInteractionHide();
         }
     }
+
+
+    private void logout() {
+
+        SharedPreferences prefs =
+                getSharedPreferences(
+                        getString(R.string.keys_shared_prefs),
+                        Context.MODE_PRIVATE);
+        //remove the saved credentials from StoredPrefs
+        prefs.edit().remove(getString(R.string.keys_prefs_password)).apply();
+        prefs.edit().remove(getString(R.string.keys_prefs_email)).apply();
+
+
+        //close the app
+        finishAndRemoveTask();
+
+        //or close this activity and bring back the Login
+        //Intent i = new Intent(this, MainActivity.class);
+        //startActivity(i);
+        //End this Activity and remove it from the Activity back stack.
+        //finish();
+    }
+
 
 
     private void loadFragment(Fragment frag) {

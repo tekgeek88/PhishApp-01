@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
         i.putExtra(getString(R.string.keys_intent_credentials), (Serializable) credentials);
         i.putExtra(getString(R.string.keys_intent_jwt), jwt);
         startActivity(i);
+        //End this Activity and remove it from the Activity back stack.
         finish();
 
 

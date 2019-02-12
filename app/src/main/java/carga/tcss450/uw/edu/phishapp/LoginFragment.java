@@ -1,6 +1,7 @@
 package carga.tcss450.uw.edu.phishapp;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -29,6 +30,7 @@ public class LoginFragment extends Fragment {
 
     private OnLoginFragmentInteractionListener mListener;
     private Credentials mCredentials;
+    private String mJwt;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -62,15 +64,46 @@ public class LoginFragment extends Fragment {
         }
     }
 
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//        if (getArguments() != null) {
+//            Credentials credentials = (Credentials) getArguments()
+//                    .getSerializable(getString(R.string.key_credentials_object));
+//            updateContent(credentials);
+//        }
+//    }
+
+
     @Override
     public void onStart() {
         super.onStart();
-        if (getArguments() != null) {
-            Credentials credentials = (Credentials) getArguments()
-                    .getSerializable(getString(R.string.key_credentials_object));
-            updateContent(credentials);
+
+        SharedPreferences prefs =
+                getActivity().getSharedPreferences(
+                        getString(R.string.keys_shared_prefs),
+                        Context.MODE_PRIVATE);
+        //retrieve the stored credentials from SharedPrefs
+        if (prefs.contains(getString(R.string.keys_prefs_email)) &&
+                prefs.contains(getString(R.string.keys_prefs_password))) {
+
+            final String email = prefs.getString(getString(R.string.keys_prefs_email), "");
+            final String password = prefs.getString(getString(R.string.keys_prefs_password), "");
+            //Load the two login EditTexts with the credentials found in SharedPrefs
+            EditText emailEdit = getActivity().findViewById(R.id.login_textview_email);
+            emailEdit.setText(email);
+            EditText passwordEdit = getActivity().findViewById(R.id.login_textview_password);
+            passwordEdit.setText(password);
+
+            doLogin(new Credentials.Builder(
+                    emailEdit.getText().toString(),
+                    passwordEdit.getText().toString())
+                    .build());
+
         }
     }
+
+
 
     @Override
     public void onDetach() {
@@ -159,31 +192,50 @@ public class LoginFragment extends Fragment {
         }
 
         if (!hasError) {
-            Credentials credentials = new Credentials.Builder(
+
+            doLogin(new Credentials.Builder(
                     emailEdit.getText().toString(),
                     passwordEdit.getText().toString())
-                    .build();
+                    .build());
+
+
+//            Credentials credentials = new Credentials.Builder(
+//                    emailEdit.getText().toString(),
+//                    passwordEdit.getText().toString())
+//                    .build();
 
             //build the web service URL
-            Uri uri = new Uri.Builder()
-                    .scheme("https")
-                    .appendPath(getString(R.string.ep_base_url))
-                    .appendPath(getString(R.string.ep_login))
-                    .build();
+//            Uri uri = new Uri.Builder()
+//                    .scheme("https")
+//                    .appendPath(getString(R.string.ep_base_url))
+//                    .appendPath(getString(R.string.ep_login))
+//                    .build();
 
             //build the JSONObject
-            JSONObject msg = credentials.asJSONObject();
+//            JSONObject msg = credentials.asJSONObject();
 
-            mCredentials = credentials;
+//            mCredentials = credentials;
 
             //instantiate and execute the AsyncTask.
-            new SendPostAsyncTask.Builder(uri.toString(), msg)
-                    .onPreExecute(this::handleLoginOnPre)
-                    .onPostExecute(this::handleLoginOnPost)
-                    .onCancelled(this::handleErrorsInTask)
-                    .build().execute();
+//            new SendPostAsyncTask.Builder(uri.toString(), msg)
+//                    .onPreExecute(this::handleLoginOnPre)
+//                    .onPostExecute(this::handleLoginOnPost)
+//                    .onCancelled(this::handleErrorsInTask)
+//                    .build().execute();
         }
     }
+
+
+    private void saveCredentials(final Credentials credentials) {
+        SharedPreferences prefs =
+                getActivity().getSharedPreferences(
+                        getString(R.string.keys_shared_prefs),
+                        Context.MODE_PRIVATE);
+        //Store the credentials in SharedPrefs
+        prefs.edit().putString(getString(R.string.keys_prefs_email), credentials.getEmail()).apply();
+        prefs.edit().putString(getString(R.string.keys_prefs_password), credentials.getPassword()).apply();
+    }
+
 
 
     public void updateContent(Credentials credentials) {
@@ -224,9 +276,17 @@ public class LoginFragment extends Fragment {
 
             if (success) {
                 //Login was successful. Switch to the loadSuccessFragment.
-                mListener.onLoginSuccess(mCredentials,
-                        resultsJSON.getString(
-                                getString(R.string.keys_json_login_jwt)));
+
+                mJwt = resultsJSON.getString(
+                        getString(R.string.keys_json_login_jwt));
+
+                saveCredentials(mCredentials);
+                mListener.onLoginSuccess(mCredentials, mJwt);
+
+
+//                mListener.onLoginSuccess(mCredentials,
+//                        resultsJSON.getString(
+//                                getString(R.string.keys_json_login_jwt)));
                 return;
             } else {
                 //Login was unsuccessful. Don’t switch fragments and
@@ -247,6 +307,33 @@ public class LoginFragment extends Fragment {
                     .setError("Login Unsuccessful");
         }
     }
+
+
+    private void doLogin(Credentials credentials) {
+        //build the web service URL
+        Uri uri = new Uri.Builder()
+                .scheme("https")
+                .appendPath(getString(R.string.ep_base_url))
+                .appendPath(getString(R.string.ep_login))
+                .build();
+
+        //build the JSONObject
+        JSONObject msg = credentials.asJSONObject();
+
+        mCredentials = credentials;
+
+        Log.d("JSON Credentials", msg.toString());
+
+        //instantiate and execute the AsyncTask.
+        //Feel free to add a handler for onPreExecution so that a progress bar
+        //is displayed or maybe disable buttons.
+        new SendPostAsyncTask.Builder(uri.toString(), msg)
+                .onPreExecute(this::handleLoginOnPre)
+                .onPostExecute(this::handleLoginOnPost)
+                .onCancelled(this::handleErrorsInTask)
+                .build().execute();
+    }
+
 
 
 
